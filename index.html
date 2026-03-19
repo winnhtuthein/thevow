@@ -733,7 +733,7 @@ function checkWeeklyLetter() {
 // SERVICE WORKER + PWA
 // ══════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(reg => {
+  navigator.serviceWorker.register('/thevow/sw.js').then(reg => {
     console.log('SW registered');
     // Listen for messages from SW (notif button taps)
     navigator.serviceWorker.addEventListener('message', e => {
