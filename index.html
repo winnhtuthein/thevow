@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050810">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Vow">
+<title>The Vow</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#050810;--bg2:#0c1018;--bg3:#111827;--bg4:#1a2233;
+  --amber:#d4922a;--amber2:#e6a817;--amber-dim:rgba(212,146,42,0.12);
+  --red:#c94040;--red-dim:rgba(201,64,64,0.12);
+  --green:#4caf7d;--green-dim:rgba(76,175,125,0.12);
+  --text:#f0ead6;--text2:#c4b99a;--text3:#7a6e5c;--text4:#3a3028;
+  --border:rgba(212,146,42,0.12);--border2:rgba(212,146,42,0.28);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Cormorant Garamond',serif;overflow:hidden}
+/* Screens */
+.screen{position:fixed;inset:0;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;padding-top:var(--safe-top)}
+.screen.active{display:flex}
+.screen-body{flex:1;padding:0 20px 120px}
+
+/* ── HEADER ── */
+.app-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10;padding-top:calc(var(--safe-top) + 16px)}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;letter-spacing:.35em;color:var(--amber);text-transform:uppercase}
+.hdr-date{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text3);letter-spacing:.08em;text-align:right;line-height:1.6}
+
+/* ── BANNER ── */
+.banner{background:var(--amber-dim);border-left:3px solid var(--amber);padding:12px 16px;margin:16px 20px 0;display:none}
+.banner.show{display:block}
+.banner-title{font-size:.8rem;font-weight:600;color:var(--amber);letter-spacing:.08em;margin-bottom:2px}
+.banner-sub{font-size:.85rem;color:var(--text2);font-style:italic}
+
+/* ── VOW CARDS ── */
+.vow-list{padding:12px 20px 0}
+.vow-card{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--amber);margin-bottom:12px;position:relative;transition:border-color .2s}
+.vow-card.broke-today{border-left-color:var(--red)}
+.vow-card.kept-today{border-left-color:var(--green)}
+.vow-card-inner{padding:16px}
+.vow-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.vow-statement{font-size:1.05rem;font-weight:600;color:var(--text);line-height:1.45;flex:1}
+.vow-streak{display:flex;flex-direction:column;align-items:center;flex-shrink:0;min-width:44px}
+.streak-flame{font-size:1.3rem}
+.streak-num{font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--amber);line-height:1}
+.streak-lbl{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--text3);letter-spacing:.08em}
+.vow-why{font-size:.88rem;color:var(--text3);font-style:italic;border-left:1px solid var(--border);padding-left:10px;margin-bottom:10px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* heat dots */
+.heat-row{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bg4);flex-shrink:0}
+.dot.k{background:var(--green)}
+.dot.b{background:var(--red);opacity:.7}
+/* tags */
+.vow-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--border);color:var(--text3)}
+.tag.kept{color:var(--green);border-color:rgba(76,175,125,.35)}
+.tag.broke{color:var(--red);border-color:rgba(201,64,64,.35)}
+.tag.waiting{color:var(--amber);border-color:rgba(212,146,42,.35)}
+/* action buttons */
+.vow-actions{display:flex;gap:8px}
+.btn-honor{flex:2;background:var(--green-dim);border:1px solid rgba(76,175,125,.4);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;padding:10px;cursor:pointer;transition:all .2s}
+.btn-honor:active{background:rgba(76,175,125,.25)}
+.btn-broke{flex:1;background:transparent;border:1px solid rgba(201,64,64,.25);color:rgba(201,64,64,.65);font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;padding:10px;cursor:pointer;transition:all .2s}
+.btn-broke:active{background:var(--red-dim);color:var(--red);border-color:var(--red)}
+.btn-detail{background:transparent;border:1px solid var(--border);color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:10px 12px;cursor:pointer}
+
+/* ── NEW VOW BUTTON ── */
+.new-vow-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:18px;background:transparent;border:1px dashed var(--border2);color:var(--amber);font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;cursor:pointer;margin-top:4px;transition:all .3s}
+.new-vow-btn:active{background:var(--amber-dim)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:60px 24px;border:1px dashed var(--border);margin:20px}
+.empty-icon{font-size:2.5rem;margin-bottom:16px;display:block;opacity:.5}
+.empty-title{font-size:1.3rem;font-weight:600;color:var(--text2);font-style:italic;margin-bottom:10px}
+.empty-sub{font-size:.9rem;color:var(--text3);line-height:1.8;font-style:italic}
+
+/* ── BOTTOM FAB ── */
+.fab{position:fixed;bottom:calc(20px + var(--safe-bottom));right:20px;width:56px;height:56px;background:var(--amber);border:none;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(212,146,42,.35);transition:transform .2s;z-index:50}
+.fab:active{transform:scale(.93)}
+
+/* ── CEREMONY SCREEN ── */
+#ceremony{z-index:20}
+.ceremony-body{flex:1;padding:20px 20px 100px;overflow-y:auto}
+.ceremony-close{background:none;border:none;color:var(--text3);font-size:1.2rem;cursor:pointer;padding:4px 8px}
+.step-label{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--text3);letter-spacing:.2em;margin-bottom:6px}
+.step-title{font-size:1.8rem;font-weight:700;color:var(--text);margin-bottom:12px;line-height:1.2}
+.step-instruction{font-size:.9rem;color:var(--text3);font-style:italic;line-height:1.7;margin-bottom:20px}
+.step-prefix{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--amber);letter-spacing:.15em;margin-bottom:10px}
+.progress-bar{display:flex;gap:6px;margin-bottom:28px}
+.progress-seg{height:2px;flex:1;background:var(--bg4);transition:background .3s}
+.progress-seg.done{background:var(--amber)}
+textarea,input[type=text]{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Cormorant Garamond',serif;font-size:1rem;padding:12px;outline:none;transition:border-color .2s;resize:none;line-height:1.6}
+textarea:focus,input[type=text]:focus{border-color:rgba(212,146,42,.45)}
+textarea::placeholder,input::placeholder{color:var(--text3);font-style:italic}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.cat-pill{background:transparent;border:1px solid var(--border);color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:.08em;text-transform:uppercase;padding:10px 4px;cursor:pointer;text-align:center;transition:all .2s}
+.cat-pill.sel{border-color:var(--amber);color:var(--amber);background:var(--amber-dim)}
+.hour-display{font-family:'JetBrains Mono',monospace;font-size:1.8rem;color:var(--amber);text-align:center;margin:8px 0}
+input[type=range]{width:100%;accent-color:var(--amber);margin:8px 0}
+.range-labels{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--text3)}
+.btn-primary{width:100%;background:var(--amber);border:none;color:var(--bg);font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;padding:16px;cursor:pointer;transition:all .2s;margin-top:16px}
+.btn-primary:active{background:var(--amber2)}
+.btn-primary:disabled{background:var(--bg4);color:var(--text3);cursor:not-allowed}
+.btn-back{width:100%;background:transparent;border:none;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;padding:12px;cursor:pointer;margin-top:8px}
+.quote{font-size:.88rem;font-style:italic;color:var(--text3);border-left:2px solid var(--border2);padding-left:12px;margin-bottom:24px;line-height:1.7}
+
+/* ── BREAK SCREEN ── */
+#breakscreen{z-index:30;justify-content:center;align-items:center;background:rgba(5,8,16,.95)}
+.break-modal{background:var(--bg3);border:1px solid rgba(201,64,64,.3);width:100%;max-width:420px;margin:20px;max-height:90vh;overflow-y:auto}
+.break-header{padding:24px;border-bottom:1px solid rgba(201,64,64,.2);text-align:center}
+.break-icon{font-size:2rem;margin-bottom:8px}
+.break-title{font-size:1.3rem;font-weight:700;color:var(--red)}
+.break-sub{font-size:.85rem;color:var(--text3);font-style:italic;margin-top:4px}
+.break-body{padding:20px}
+.break-vow-box{background:var(--bg);border:1px solid var(--border);padding:14px;margin-bottom:16px;font-size:.95rem;color:var(--text2);font-style:italic;line-height:1.5}
+.break-label{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--red);letter-spacing:.15em;margin-bottom:6px}
+.break-confirm-hint{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--text3);letter-spacing:.05em;margin-bottom:8px;line-height:1.6}
+.break-confirm-hint code{color:var(--red);background:var(--red-dim);padding:1px 4px}
+.break-confirm-input{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--red);background:var(--bg);border:1px solid rgba(201,64,64,.25)}
+.break-confirm-input:focus{border-color:var(--red)}
+.break-actions{display:flex;gap:8px;margin-top:16px}
+.btn-break-cancel{flex:1;background:transparent;border:1px solid var(--border);color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;padding:12px;cursor:pointer}
+.btn-break-confirm{flex:1.5;background:var(--red);border:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;padding:12px;cursor:pointer;opacity:.4;pointer-events:none;transition:opacity .2s}
+.btn-break-confirm.armed{opacity:1;pointer-events:auto}
+
+/* ── DETAIL SCREEN ── */
+#detail{z-index:25}
+.detail-body{padding:20px 20px 100px}
+.detail-statement{font-size:1.25rem;font-weight:600;line-height:1.5;color:var(--text);margin-bottom:24px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.stat-box{background:var(--bg3);border:1px solid var(--border);padding:14px;text-align:center}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:1.6rem;color:var(--amber);display:block;line-height:1;margin-bottom:4px}
+.stat-val.green{color:var(--green)}
+.stat-lbl{font-family:'JetBrains Mono',monospace;font-size:.48rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;line-height:1.4}
+.detail-section{font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--text3);letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px}
+.detail-why-box{background:var(--bg3);border-left:2px solid var(--border2);padding:14px;margin-bottom:20px;font-size:.95rem;font-style:italic;color:var(--text2);line-height:1.65}
+.detail-cons-box{background:var(--red-dim);border:1px solid rgba(201,64,64,.2);padding:12px;margin-bottom:20px;font-size:.9rem;color:var(--text2);line-height:1.5}
+.heat-grid{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:20px}
+.heat-grid .dot{width:14px;height:14px}
+.break-log-item{background:var(--red-dim);border-left:2px solid rgba(201,64,64,.4);padding:10px 12px;margin-bottom:6px}
+.break-log-date{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--red);margin-bottom:4px}
+.break-log-reason{font-size:.88rem;color:var(--text2);line-height:1.5}
+.btn-archive{width:100%;background:transparent;border:none;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;padding:14px;cursor:pointer;margin-top:16px}
+.btn-delete{width:100%;background:transparent;border:none;color:rgba(201,64,64,.5);font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;padding:10px;cursor:pointer}
+
+/* ── MIRROR TOAST ── */
+.mirror-toast{position:fixed;bottom:calc(90px + var(--safe-bottom));left:16px;right:16px;background:var(--bg3);border:1px solid var(--border);padding:16px;z-index:100;transform:translateY(200px);opacity:0;transition:all .4s cubic-bezier(.23,1,.32,1)}
+.mirror-toast.show{transform:translateY(0);opacity:1}
+.mirror-toast-text{font-size:.95rem;font-style:italic;color:var(--text2);line-height:1.6}
+.mirror-close{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem}
+
+/* ── MILESTONE TOAST ── */
+.milestone-toast{position:fixed;top:calc(80px + var(--safe-top));left:16px;right:16px;background:var(--bg2);border:1px solid var(--amber);padding:16px;z-index:100;transform:translateY(-120px);opacity:0;transition:all .5s cubic-bezier(.23,1,.32,1)}
+.milestone-toast.show{transform:translateY(0);opacity:1}
+.milestone-flame{font-size:1.4rem;margin-bottom:6px}
+.milestone-num{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--amber);letter-spacing:.2em;margin-bottom:4px}
+.milestone-msg{font-size:.95rem;color:var(--text2);font-style:italic;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- ═══ HOME ═══ -->
+<div class="screen active" id="home">
+  <div class="app-header">
+    <div class="logo">The Vow</div>
+    <div class="hdr-date" id="hdrDate"></div>
+  </div>
+  <div class="banner" id="banner">
+    <div class="banner-title">Your vows await your answer</div>
+    <div class="banner-sub" id="bannerSub"></div>
+  </div>
+  <div class="vow-list" id="vowList"></div>
+  <div style="padding:0 20px">
+    <button class="new-vow-btn" onclick="openCeremony()">
+      <span style="opacity:.6;font-size:1.1rem">✦</span> Take a new vow
+    </button>
+  </div>
+  <button class="fab" onclick="openCeremony()" title="New Vow">✦</button>
+</div>
+
+<!-- ═══ CEREMONY ═══ -->
+<div class="screen" id="ceremony">
+  <div class="app-header">
+    <div class="logo">The Ceremony</div>
+    <button class="ceremony-close" onclick="closeScreen('ceremony')">✕</button>
+  </div>
+  <div class="ceremony-body">
+    <div class="quote">"Until one is committed, there is hesitancy. The moment one definitely commits, Providence moves too."</div>
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-seg done"></div>
+      <div class="progress-seg"></div>
+      <div class="progress-seg"></div>
+      <div class="progress-seg"></div>
+    </div>
+    <div id="stepContent"></div>
+  </div>
+</div>
+
+<!-- ═══ BREAK ═══ -->
+<div class="screen" id="breakscreen">
+  <div class="break-modal">
+    <div class="break-header">
+      <div class="break-icon">💔</div>
+      <div class="break-title">You are about to break your vow</div>
+      <div class="break-sub">Be honest. There is no hiding here.</div>
+    </div>
+    <div class="break-body">
+      <div class="break-vow-box" id="breakVowBox"></div>
+      <div class="break-label">What happened?</div>
+      <textarea id="breakReason" rows="3" placeholder="Be truthful. No excuses — just what happened." style="margin-bottom:16px"></textarea>
+      <div class="break-confirm-hint">To confirm, type <code>I BROKE MY VOW</code> below</div>
+      <input class="break-confirm-input" type="text" id="breakConfirm" placeholder="I BROKE MY VOW" oninput="checkBreakArm()">
+      <div class="break-actions">
+        <button class="btn-break-cancel" onclick="closeScreen('breakscreen')">I Did Not Break It</button>
+        <button class="btn-break-confirm" id="breakExecBtn" onclick="execBreak()">Confirm Break</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DETAIL ═══ -->
+<div class="screen" id="detail">
+  <div class="app-header">
+    <button class="btn-back" onclick="closeScreen('detail')" style="background:none;border:none;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;padding:0">← Back</button>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+</div>
+
+<!-- ═══ TOASTS ═══ -->
+<div class="mirror-toast" id="mirrorToast">
+  <button class="mirror-close" onclick="hideMirror()">✕</button>
+  <div class="mirror-toast-text" id="mirrorText"></div>
+</div>
+<div class="milestone-toast" id="milestoneToast">
+  <div class="milestone-flame">🔥</div>
+  <div class="milestone-num" id="milestoneNum"></div>
+  <div class="milestone-msg" id="milestoneMsg"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+let vows = JSON.parse(localStorage.getItem('vow_data') || '[]');
+let activeBreakId = null;
+
+// Ceremony state
+let cStep = 0;
+let cData = { statement:'', why:'', consequence:'', category:'Discipline', notifyHour:20 };
+
+const CATS = ['Writing','Speaking','Study','Health','Focus','Discipline'];
+const CAT_EMOJI = { Writing:'✍️', Speaking:'🗣️', Study:'📚', Health:'💪', Focus:'🎯', Discipline:'⚔️' };
+
+function save() { localStorage.setItem('vow_data', JSON.stringify(vows)); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function fmtDate(d) {
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function calcStreak(history) {
+  const dayMap = {};
+  history.forEach(h => dayMap[h.date] = h.kept);
+  let streak = 0;
+  let d = new Date(); d.setHours(0,0,0,0);
+  const todayKey = d.toISOString().split('T')[0];
+  if (!dayMap[todayKey]) d.setDate(d.getDate() - 1);
+  for (let i = 0; i < 9999; i++) {
+    const key = d.toISOString().split('T')[0];
+    if (dayMap[key] === true) { streak++; d.setDate(d.getDate() - 1); } else break;
+  }
+  return streak;
+}
+
+function calcBest(history) {
+  const sorted = [...history].sort((a,b) => a.date.localeCompare(b.date));
+  let best = 0, run = 0;
+  sorted.forEach(h => { if(h.kept){run++;if(run>best)best=run;}else run=0; });
+  return best;
+}
+
+function honorRate(history) {
+  if (!history.length) return 0;
+  return Math.round(history.filter(h=>h.kept).length / history.length * 100);
+}
+
+function answeredToday(vow) {
+  return (vow.history||[]).some(h => h.date === today());
+}
+
+function keptToday(vow) {
+  const e = (vow.history||[]).find(h => h.date === today());
+  return e ? e.kept : null;
+}
+
+function last30(vow) {
+  const dayMap = {};
+  (vow.history||[]).forEach(h => dayMap[h.date] = h.kept);
+  const created = new Date(vow.createdDate + 'T00:00:00');
+  return Array.from({length:30}, (_,i) => {
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - (29-i));
+    if (d < created) return null;
+    const key = d.toISOString().split('T')[0];
+    return dayMap[key] !== undefined ? dayMap[key] : undefined;
+  });
+}
+
+// ══════════════════════════════════════════════════
+// HEADER
+// ══════════════════════════════════════════════════
+function updateHeader() {
+  const n = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('hdrDate').innerHTML =
+    `${days[n.getDay()]}, ${months[n.getMonth()]} ${n.getDate()}<br>${n.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}`;
+}
+setInterval(updateHeader, 30000);
+updateHeader();
+
+// ══════════════════════════════════════════════════
+// RENDER HOME
+// ══════════════════════════════════════════════════
+function render() {
+  const list = document.getElementById('vowList');
+  const banner = document.getElementById('banner');
+
+  if (!vows.length) {
+    list.innerHTML = `
+      <div class="empty">
+        <span class="empty-icon">🕯</span>
+        <div class="empty-title">No vows taken yet.</div>
+        <div class="empty-sub">A vow is the most powerful promise<br>you can make — to yourself.</div>
+      </div>`;
+    banner.classList.remove('show');
+    return;
+  }
+
+  const unanswered = vows.filter(v => !answeredToday(v));
+  if (unanswered.length) {
+    banner.classList.add('show');
+    document.getElementById('bannerSub').textContent =
+      `${unanswered.length} vow${unanswered.length>1?'s':''} awaiting your answer today`;
+  } else {
+    banner.classList.remove('show');
+  }
+
+  list.innerHTML = vows.map(v => {
+    const streak = calcStreak(v.history||[]);
+    const kt = keptToday(v);
+    const ans = answeredToday(v);
+    const dots = last30(v).map(k =>
+      `<div class="dot${k===true?' k':k===false?' b':''}"></div>`
+    ).join('');
+
+    const todayTag = !ans
+      ? `<span class="tag waiting">Awaiting</span>`
+      : kt ? `<span class="tag kept">✓ Kept</span>` : `<span class="tag broke">✗ Broke</span>`;
+
+    const actions = !ans ? `
+      <div class="vow-actions">
+        <button class="btn-honor" onclick="honorVow('${v.id}')">I Honored It</button>
+        <button class="btn-broke" onclick="openBreak('${v.id}')">Broke</button>
+        <button class="btn-detail" onclick="openDetail('${v.id}')">···</button>
+      </div>` : `
+      <div class="vow-actions">
+        <button class="btn-detail" onclick="openDetail('${v.id}')" style="flex:1">View Details</button>
+      </div>`;
+
+    return `
+      <div class="vow-card ${kt===false?'broke-today':kt===true?'kept-today':''}">
+        <div class="vow-card-inner">
+          <div class="vow-top">
+            <div class="vow-statement">I will ${escHtml(v.statement)}</div>
+            <div class="vow-streak">
+              <span class="streak-flame">${streak>0?'🔥':'🕯'}</span>
+              <span class="streak-num">${streak}</span>
+              <span class="streak-lbl">days</span>
+            </div>
+          </div>
+          ${v.why ? `<div class="vow-why">"${escHtml(v.why)}"</div>` : ''}
+          <div class="heat-row">${dots}</div>
+          <div class="vow-tags">
+            <span class="tag">${CAT_EMOJI[v.category]||'✦'} ${v.category}</span>
+            ${todayTag}
+          </div>
+          ${actions}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+// HONOR
+// ══════════════════════════════════════════════════
+function honorVow(id) {
+  const v = vows.find(x => x.id === id);
+  if (!v || answeredToday(v)) return;
+  if (!v.history) v.history = [];
+  v.history = v.history.filter(h => h.date !== today());
+  v.history.push({ date: today(), kept: true });
+  save(); render();
+
+  // Check milestone
+  const streak = calcStreak(v.history);
+  const milestones = { 3:'Three days. Most people stop before this.', 7:'One full week. You are not who you were.', 14:'Two weeks. The vow is becoming part of you.', 30:'Thirty days. This is who you are now.', 60:'Two months of keeping your word. Extraordinary.', 100:'One hundred days. You have become someone you can trust.' };
+  if (milestones[streak]) showMilestone(streak, milestones[streak]);
+}
+
+// ══════════════════════════════════════════════════
+// BREAK FLOW
+// ══════════════════════════════════════════════════
+function openBreak(id) {
+  activeBreakId = id;
+  const v = vows.find(x => x.id === id);
+  document.getElementById('breakVowBox').textContent = `"I will ${v.statement}"`;
+  document.getElementById('breakReason').value = '';
+  document.getElementById('breakConfirm').value = '';
+  document.getElementById('breakExecBtn').classList.remove('armed');
+  showScreen('breakscreen');
+}
+
+function checkBreakArm() {
+  const v = document.getElementById('breakConfirm').value.trim();
+  document.getElementById('breakExecBtn').classList.toggle('armed', v === 'I BROKE MY VOW');
+}
+
+function execBreak() {
+  const v = vows.find(x => x.id === activeBreakId);
+  if (!v) return;
+  const reason = document.getElementById('breakReason').value.trim();
+  if (!v.history) v.history = [];
+  v.history = v.history.filter(h => h.date !== today());
+  v.history.push({ date: today(), kept: false, reason });
+  save(); closeScreen('breakscreen'); render();
+  // Mirror message 2 seconds later
+  setTimeout(() => showMirror(), 2000);
+}
+
+// ══════════════════════════════════════════════════
+// CEREMONY
+// ══════════════════════════════════════════════════
+function openCeremony() {
+  cStep = 0;
+  cData = { statement:'', why:'', consequence:'', category:'Discipline', notifyHour:20 };
+  renderStep();
+  showScreen('ceremony');
+}
+
+function renderStep() {
+  const segs = document.querySelectorAll('.progress-seg');
+  segs.forEach((s,i) => s.classList.toggle('done', i <= cStep));
+
+  const c = document.getElementById('stepContent');
+  if (cStep === 0) {
+    c.innerHTML = `
+      <div class="step-label">01 / 04</div>
+      <div class="step-title">The Vow</div>
+      <div class="step-instruction">Complete the sentence. Be specific. Vague vows are easily broken.</div>
+      <div class="step-prefix">I vow that I will —</div>
+      <textarea id="inp0" rows="4" placeholder="write every essay and class assignment entirely by myself, without AI assistance of any kind">${cData.statement}</textarea>
+      <button class="btn-primary" onclick="nextStep()" id="btn0">Continue</button>`;
+    document.getElementById('inp0').addEventListener('input', e => cData.statement = e.target.value);
+  } else if (cStep === 1) {
+    c.innerHTML = `
+      <div class="step-label">02 / 04</div>
+      <div class="step-title">The Why</div>
+      <div class="step-instruction">This is what you will read when you want to give up. Make it honest.</div>
+      <div class="step-prefix">This matters because —</div>
+      <textarea id="inp1" rows="4" placeholder="my writing skill is mine. Every time I use AI to write, my own voice gets weaker...">${cData.why}</textarea>
+      <button class="btn-primary" onclick="nextStep()">Continue</button>
+      <button class="btn-back" onclick="prevStep()">← Back</button>`;
+    document.getElementById('inp1').addEventListener('input', e => cData.why = e.target.value);
+  } else if (cStep === 2) {
+    c.innerHTML = `
+      <div class="step-label">03 / 04</div>
+      <div class="step-title">The Consequence</div>
+      <div class="step-instruction">What will you do if you break it? Something real. Something uncomfortable.</div>
+      <div class="step-prefix">If I break this, I will —</div>
+      <textarea id="inp2" rows="3" placeholder="hand-write two full pages about why I broke it">${cData.consequence}</textarea>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--text3);margin-top:6px;font-style:italic">Optional — but a real consequence makes the vow stronger</div>
+      <button class="btn-primary" onclick="nextStep()">Continue</button>
+      <button class="btn-back" onclick="prevStep()">← Back</button>`;
+    document.getElementById('inp2').addEventListener('input', e => cData.consequence = e.target.value);
+  } else if (cStep === 3) {
+    const catHTML = CATS.map(cat =>
+      `<button class="cat-pill${cData.category===cat?' sel':''}" onclick="selectCat('${cat}',this)">${CAT_EMOJI[cat]||''}<br>${cat}</button>`
+    ).join('');
+    c.innerHTML = `
+      <div class="step-label">04 / 04</div>
+      <div class="step-title">Final Settings</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--amber);letter-spacing:.2em;margin-bottom:10px">CATEGORY</div>
+      <div class="cat-grid">${catHTML}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--amber);letter-spacing:.2em;margin-bottom:6px">EVENING RECKONING</div>
+      <div style="font-size:.82rem;color:var(--text3);font-style:italic;margin-bottom:12px">The Witness asks once a day at the hour you choose. Silent if you already answered.</div>
+      <div class="hour-display" id="hourDisplay">${cData.notifyHour}:00 ${cData.notifyHour<12?'AM':'PM'}</div>
+      <input type="range" min="6" max="23" value="${cData.notifyHour}" oninput="setHour(this.value)">
+      <div class="range-labels"><span>6 AM</span><span>11 PM</span></div>
+      <button class="btn-primary" onclick="sealVow()" style="background:var(--amber);margin-top:24px">✦ I Take This Vow ✦</button>
+      <button class="btn-back" onclick="prevStep()">← Back</button>`;
+  }
+}
+
+function nextStep() {
+  if (cStep === 0 && cData.statement.trim().length < 5) { alert('Write your vow first.'); return; }
+  if (cStep === 1 && cData.why.trim().length < 5) { alert('Write why this matters.'); return; }
+  cStep++;
+  renderStep();
+}
+
+function prevStep() { cStep--; renderStep(); }
+function selectCat(cat, el) {
+  cData.category = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function setHour(v) {
+  cData.notifyHour = parseInt(v);
+  document.getElementById('hourDisplay').textContent = `${cData.notifyHour}:00 ${cData.notifyHour<12?'AM':'PM'}`;
+}
+
+function sealVow() {
+  vows.push({
+    id: uid(),
+    statement: cData.statement.trim(),
+    why: cData.why.trim(),
+    consequence: cData.consequence.trim(),
+    category: cData.category,
+    notifyHour: cData.notifyHour,
+    createdDate: today(),
+    history: []
+  });
+  save();
+  closeScreen('ceremony');
+  render();
+  scheduleNotifications();
+}
+
+// ══════════════════════════════════════════════════
+// DETAIL
+// ══════════════════════════════════════════════════
+function openDetail(id) {
+  const v = vows.find(x => x.id === id);
+  if (!v) return;
+  const streak = calcStreak(v.history||[]);
+  const best = calcBest(v.history||[]);
+  const rate = honorRate(v.history||[]);
+  const broken = (v.history||[]).filter(h=>!h.kept).reverse();
+
+  // 60 day heatmap
+  const dayMap = {};
+  (v.history||[]).forEach(h => dayMap[h.date] = h.kept);
+  const created = new Date(v.createdDate+'T00:00:00');
+  const dots60 = Array.from({length:60},(_,i)=>{
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-(59-i));
+    if(d<created) return `<div class="dot"></div>`;
+    const key = d.toISOString().split('T')[0];
+    const k = dayMap[key];
+    return `<div class="dot${k===true?' k':k===false?' b':''}"></div>`;
+  }).join('');
+
+  const brokenHTML = broken.length
+    ? broken.map(b=>`
+        <div class="break-log-item">
+          <div class="break-log-date">${fmtDate(b.date)}</div>
+          ${b.reason?`<div class="break-log-reason">${escHtml(b.reason)}</div>`:'<div class="break-log-reason" style="opacity:.5">No reason recorded.</div>'}
+        </div>`).join('')
+    : `<div style="font-size:.88rem;color:var(--text3);font-style:italic">No broken days yet. Honor the vow.</div>`;
+
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-statement">I will ${escHtml(v.statement)}</div>
+    <div class="stats-row">
+      <div class="stat-box"><span class="stat-val">${streak}</span><span class="stat-lbl">Current<br>Streak</span></div>
+      <div class="stat-box"><span class="stat-val green">${best}</span><span class="stat-lbl">Best<br>Streak</span></div>
+      <div class="stat-box"><span class="stat-val">${rate}%</span><span class="stat-lbl">Honor<br>Rate</span></div>
+    </div>
+    ${v.why?`<div class="detail-section">Why this matters</div><div class="detail-why-box">${escHtml(v.why)}</div>`:''}
+    ${v.consequence?`<div class="detail-section">Consequence if broken</div><div class="detail-cons-box">→ ${escHtml(v.consequence)}</div>`:''}
+    <div class="detail-section">60-day record</div>
+    <div class="heat-grid">${dots60}</div>
+    <div class="detail-section">Times you broke it</div>
+    ${brokenHTML}
+    <button class="btn-archive" onclick="archiveVow('${v.id}')">Archive this vow</button>
+    <button class="btn-delete" onclick="deleteVow('${v.id}')">Delete permanently</button>
+  `;
+  showScreen('detail');
+}
+
+function archiveVow(id) {
+  if (!confirm('Archive this vow?')) return;
+  vows = vows.filter(v => v.id !== id);
+  save(); closeScreen('detail'); render();
+}
+
+function deleteVow(id) {
+  if (!confirm('Delete this vow permanently?')) return;
+  vows = vows.filter(v => v.id !== id);
+  save(); closeScreen('detail'); render();
+}
+
+// ══════════════════════════════════════════════════
+// TOASTS
+// ══════════════════════════════════════════════════
+const MIRROR_MSGS = [
+  'Tomorrow is a clean page. The vow still stands.',
+  'One day does not undo who you are becoming.',
+  'The fall is not failure. Not getting up is.',
+  'Grace. Then back to work.',
+  'Every person who kept a long streak also once broke it.',
+  'You know what you did. Now decide what you do tomorrow.'
+];
+
+function showMirror() {
+  document.getElementById('mirrorText').textContent = MIRROR_MSGS[Math.floor(Math.random()*MIRROR_MSGS.length)];
+  const t = document.getElementById('mirrorToast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 6000);
+}
+
+function hideMirror() { document.getElementById('mirrorToast').classList.remove('show'); }
+
+function showMilestone(streak, msg) {
+  document.getElementById('milestoneNum').textContent = `${streak} DAY STREAK`;
+  document.getElementById('milestoneMsg').textContent = msg;
+  const t = document.getElementById('milestoneToast');
+  t.classList.add('show');
+  if (navigator.vibrate) navigator.vibrate([100, 50, 200, 50, 100]);
+  setTimeout(() => t.classList.remove('show'), 7000);
+}
+
+// ══════════════════════════════════════════════════
+// SCREEN NAV
+// ══════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function closeScreen(id) {
+  document.getElementById(id).classList.remove('active');
+  document.getElementById('home').classList.add('active');
+}
+
+// ══════════════════════════════════════════════════
+// NOTIFICATIONS (The Witness)
+// ══════════════════════════════════════════════════
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+
+function scheduleNotifications() {
+  if (!('serviceWorker' in navigator) || !vows.length) return;
+  if (Notification.permission !== 'granted') return;
+
+  // Clear old checks, set new one
+  if (window._notifInterval) clearInterval(window._notifInterval);
+
+  // Check every 30 minutes if we should fire a notification
+  window._notifInterval = setInterval(() => checkWitness(), 30 * 60 * 1000);
+  checkWitness();
+}
+
+function checkWitness() {
+  const hour = new Date().getHours();
+  const todayKey = today();
+
+  vows.forEach(v => {
+    if (hour < v.notifyHour) return;
+    const answered = (v.history||[]).some(h => h.date === todayKey);
+    if (answered) return;
+
+    const streak = calcStreak(v.history||[]);
+    const stmt = v.statement.length > 55 ? v.statement.slice(0,55) + '…' : v.statement;
+    const title = streak >= 7 ? `Day ${streak+1} — keep the streak` : streak > 0 ? `${streak}-day streak at stake` : 'Your vow awaits';
+    const body = `You said you would ${stmt}. Did you today?`;
+
+    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.showNotification(title, {
+          body,
+          vibrate: [150, 75, 150],
+          data: { vowId: v.id },
+          actions: [
+            { action: 'HONOR', title: '✓ Honored it' },
+            { action: 'BROKEN', title: '✗ Broke it' }
+          ],
+          requireInteraction: true,
+          tag: `vow-${v.id}-${todayKey}`
+        });
+      });
+    }
+  });
+}
+
+// Weekly letter — Sunday at 7 PM
+function checkWeeklyLetter() {
+  const n = new Date();
+  if (n.getDay() !== 0 || n.getHours() < 19) return;
+  const lastLetter = localStorage.getItem('lastLetter');
+  const thisWeek = `${n.getFullYear()}-W${Math.ceil(n.getDate()/7)}`;
+  if (lastLetter === thisWeek) return;
+  localStorage.setItem('lastLetter', thisWeek);
+
+  const msgs = [
+    'The week is ending. Open The Vow and see your record honestly.',
+    'Another seven days have passed. What you do in private is who you are in public.',
+    'Sunday. Small days, consistently lived, build extraordinary lives.'
+  ];
+
+  if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+    navigator.serviceWorker.ready.then(reg => {
+      reg.showNotification('Your weekly letter', {
+        body: msgs[Math.floor(Math.random()*msgs.length)],
+        tag: 'weekly-letter'
+      });
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════
+// SERVICE WORKER + PWA
+// ══════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    console.log('SW registered');
+    // Listen for messages from SW (notif button taps)
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.action === 'HONOR' && e.data?.vowId) honorVow(e.data.vowId);
+      if (e.data?.action === 'BROKEN' && e.data?.vowId) openBreak(e.data.vowId);
+    });
+  }).catch(e => console.log('SW failed:', e));
+}
+
+// Install prompt
+let installPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  installPrompt = e;
+  // Show install hint after 3 seconds if not installed
+  setTimeout(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    showMirror(); // Reuse toast for install hint
+    document.getElementById('mirrorText').textContent = '📲 Add to Home Screen for the full app experience — tap your browser menu → "Add to Home Screen"';
+  }, 3000);
+});
+
+// Handle URL params from notif clicks
+const urlParams = new URLSearchParams(window.location.search);
+const urlAction = urlParams.get('action');
+const urlVowId = urlParams.get('vowId');
+if (urlAction === 'HONOR' && urlVowId) setTimeout(() => honorVow(urlVowId), 500);
+if (urlAction === 'BROKEN' && urlVowId) setTimeout(() => openBreak(urlVowId), 500);
+
+// ══════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+render();
+requestNotifPermission().then(() => {
+  scheduleNotifications();
+  setInterval(checkWeeklyLetter, 60 * 60 * 1000);
+  checkWeeklyLetter();
+});
+</script>
+</body>
+</html>
